@@ -1,3 +1,3 @@
 module.exports = {
-    publicPath: '/my-project/'
+    publicPath: 'f2eVue'
 }
