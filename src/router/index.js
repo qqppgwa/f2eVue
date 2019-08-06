@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import HelloWorld from '@/components/HelloWorld';
 import HelloWorld2 from '@/components/tomato/HelloWorld2';
+import musicPlayer from '@/components/musicPlayer/index';
 Vue.use(Router);
 
 export default new Router({
@@ -17,8 +18,8 @@ export default new Router({
     },
     {
         path: '/music',
-        name: 'HelloWorld',
-        component: HelloWorld
+        name: 'musicPlayer',
+        component: musicPlayer
     }
     ]
 });

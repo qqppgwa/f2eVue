@@ -24,6 +24,7 @@ module.exports = {
     quotes: ['error', 'single'],
     indent: ['error', 4],
     semi: [1, 'always'],
+    // 'spaced - comment': ["error", "never"],
     // allow debugger during development
     // 'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
   }

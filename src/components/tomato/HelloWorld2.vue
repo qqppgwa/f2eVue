@@ -51,6 +51,7 @@ export default {
 };
 </script>
 <style scoped>
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 button {
     outline: none;
     padding: 0;
