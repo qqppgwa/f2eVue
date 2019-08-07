@@ -25,4 +25,8 @@ button {
     border: none;
     background-color: transparent;
 }
+ul,
+li {
+    list-style: none;
+}
 </style>

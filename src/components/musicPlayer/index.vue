@@ -1,6 +1,5 @@
 <template>
     <section>
-
         <main>
             <div>
                 <div class="info">
@@ -12,16 +11,53 @@
                         </figure>
                         <div>
                             <p>{{nowSong.album}}</p>
-                            <button @click="a">play</button>
+                            <button @click="start">play</button>
                         </div>
                         <button class="like"></button>
                     </div>
+                    <ul>
+                        <li v-for="(song,idx) in songData" :key="idx">
+                            <audio class="player" @canplay="timeTrans(idx)">
+                                <!-- <source src="horse.ogg" type="audio/ogg"> -->
+                                <source :src="song.src" type="audio/mpeg">
+                            </audio>
+                            <div>{{idx+1}}</div>
+                            <div>{{song.name}}</div>
+                            <div><span class="canPlay">--:--</span></div>
+                            <div>{{numberTrans(song.likes)}} <span></span> </div>
+
+                        </li>
+                    </ul>
 
                 </div>
             </div>
             <div class="playBar">
                 <div></div>
                 <div>
+                    <div class="timr"></div>
+                    <div class="playInfo">
+                        <div>
+                            <figure :style="{backgroundImage:`url(${nowSong.cover})`}"></figure>
+                            <div>
+                                <p>{{nowSong.name}}</p>
+                                <p>{{nowSong.artist.name}}</p>
+                            </div>
+                        </div>
+                        <div class="tools">
+                            <button></button>
+                            <button></button>
+                            <button></button>
+                            <button></button>
+                            <button></button>
+                        </div>
+                        <div class="vol">
+                            <div>
+                                <button></button>
+                                <div class="volBar"></div>
+                            </div>
+                            <button></button>
+                        </div>
+                    </div>
                     <audio controls id="player">
                         <!-- <source src="horse.ogg" type="audio/ogg"> -->
                         <source :src="nowSong.src" type="audio/mpeg">
@@ -54,39 +90,8 @@ export default {
     data () {
         return {
             songData: songData,
-            nowSong: songData[1]
-            // songData: [{
-            //     name: '1st',
-            //     length: '',
-            //     likes: 123,
-            //     src: require('../../assets/audio/In_The_Shadows.mp3'),
-            //     artist: {
-            //         name: 'aabb1',
-            //         photo: 'https://cdn2.ettoday.net/images/2371/d2371886.jpg',
-            //         followist: '100',
-            //         isFol: false
-            //     }
-
-            // }, { name: '2st',
-            //     length: '',
-            //     likes: 123,
-            //     src: require('../../assets/audio/In_The_Shadows.mp3'),
-            //     artist: {
-            //         name: 'aabb1',
-            //         photo: 'https://cdn2.ettoday.net/images/2371/d2371886.jpg',
-            //         followist: '100',
-            //         isFol: false
-            //     }
-            // }, { name: '3st',
-            //     length: '',
-            //     likes: 123,
-            //     src: require('../../assets/audio/In_The_Shadows.mp3'),
-            //     artist: {
-            //         name: 'aabb1',
-            //         photo: 'https://cdn2.ettoday.net/images/2371/d2371886.jpg',
-            //         followist: '100',
-            //         isFol: false
-            //     } }]
+            nowSong: songData[1],
+            canPlay: false
 
         };
     },
@@ -94,7 +99,39 @@ export default {
 
     },
     methods: {
-        a () {
+        cc () {
+            console.log('s');
+        },
+        numberTrans (num) {
+            var num2 = (num || 0).toString();
+            var result = '';
+            while (num2.length > 3) {
+                result = ',' + num2.slice(-3) + result;
+                num2 = num2.slice(0, num2.length - 3);
+            }
+            if (num2) { result = num2 + result; }
+            return result;
+
+            // let str = n.toString();
+            // let newArr = [];
+            // // console.log(n.toString().length);
+            // console.log(str.split('').reverse());
+            // for()
+        },
+        timeTrans (i) {
+            let time = Math.floor(document.getElementsByClassName('player')[i].duration);
+            let min = Math.floor(time / 60);
+            let sec = (time % 60).toString();
+            if (sec.length < 2) {
+                // sec.split.unshift('0');
+                sec = '0' + sec;
+            }
+            document.getElementsByClassName('canPlay')[i].textContent = min + ':' + sec;
+            // console.log(i);
+            console.log(sec);
+            // console.log(document.getElementsByClassName('player')[i]);
+        },
+        start (i) {
             let d = document.getElementById('player').duration;
             console.log(document.getElementById('player').duration);
             console.log(this.formatDuring(d));
@@ -113,11 +150,8 @@ export default {
         }
     },
     mounted () {
-        console.log(this.songData);
-        var snd = new Audio('./../assets/audio/In_The_Shadows.mp3');
-        snd.preload = true;
-        snd.autoplay = false;
-        snd.muted = true;
+        console.log(document.getElementById('player'));
+        // console.log(this.songData);
         // snd.play();
         // if (snd !== undefined) {
         //     snd.then(_ => {
@@ -145,7 +179,7 @@ section {
     color: #fff;
 }
 audio {
-    /* display: none; */
+    display: none;
 }
 nav {
     width: 80px;
@@ -230,17 +264,99 @@ main > div:first-child {
     bottom: 0;
     width: 100%;
 }
-.playBar div {
+/* .playBar div {
     width: 100%;
-}
-.playBar div:first-child {
+} */
+.playBar > div:first-child {
     height: 13px;
     background-color: #fff;
     border: 1px solid #fff;
 }
-.playBar div:last-child {
+.playBar > div:last-child {
     height: 85px;
     background: linear-gradient(#772020, #361024);
+}
+.playInfo {
+    display: flex;
+    justify-content: center;
+    height: calc(100% - 17px);
+}
+.playInfo > div {
+    width: 33.33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.playInfo figure {
+    width: 40px;
+    height: 40px;
+    margin-right: 20px;
+    background-position: center;
+    background-size: cover;
+}
+.playInfo p:first-child {
+    font-size: 20px;
+    font-weight: bold;
+}
+.playInfo p:last-child {
+    font-size: 12px;
+}
+.tools button {
+    background-position: center;
+    background-size: cover;
+}
+.tools button:first-child {
+    width: 16px;
+    height: 16px;
+    background-image: url(../../assets/images/shuffle.svg);
+    margin-right: 40px;
+}
+.tools button:last-child {
+    width: 18px;
+    height: 20px;
+    background-image: url(../../assets/images/repeat.svg);
+}
+.tools button:nth-child(2) {
+    width: 24.61px;
+    height: 15px;
+    background-image: url(../../assets/images/pre.svg);
+}
+.tools button:nth-child(4) {
+    width: 24.61px;
+    height: 15px;
+    background-image: url(../../assets/images/next.svg);
+    margin-right: 40px;
+}
+.tools button:nth-child(3) {
+    width: 54px;
+    height: 54px;
+    margin: 0 21px;
+    background-image: url(../../assets/images/pause2.svg);
+}
+.vol div button {
+    width: 25px;
+    height: 25px;
+    background-image: url(../../assets/images/volume_up.svg);
+}
+.vol div {
+    display: flex;
+    align-items: center;
+}
+.vol > button {
+    width: 24px;
+    height: 22px;
+    background-image: url(../../assets/images/heart.svg);
+    margin-left: 54px;
+}
+.vol .volBar {
+    width: 100px;
+    height: 9px;
+    border-radius: 3px;
+    background-color: #fff;
+    margin-left: 10px;
+}
+.timr {
+    height: 17px;
 }
 .info {
     height: 100%;
@@ -266,7 +382,7 @@ main > div:first-child {
     background-position: center;
     background-size: cover;
     border: 1px solid #707070;
-    border-radius: 50%;
+    /* border-radius: 50%; */
     margin-right: 53px;
     padding-right: 24px;
 }
@@ -292,5 +408,39 @@ main > div:first-child {
     position: absolute;
     right: 0;
     bottom: 0;
+}
+li {
+    display: flex;
+    height: 56px;
+    align-items: center;
+    border-bottom: 1px solid #707070;
+}
+li audio {
+    display: none;
+}
+li div:nth-child(2) {
+    width: 10%;
+}
+li div:nth-child(3) {
+    width: 55%;
+}
+li div:nth-child(4) {
+    font-size: 14px;
+    width: 15%;
+}
+li div:last-child {
+    font-size: 14px;
+    width: 20%;
+    display: flex;
+    justify-content: flex-end;
+}
+li div:last-child span {
+    display: block;
+    margin-left: 14px;
+    width: 15px;
+    height: 14px;
+    background-image: url(../../assets/images/heart.svg);
+    background-position: center;
+    background-size: cover;
 }
 </style>
