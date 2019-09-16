@@ -1,5 +1,5 @@
 <template>
-    <section>
+    <section v-if="nowSong">
         <main>
             <div>
                 <div class="info">
@@ -32,9 +32,14 @@
                 </div>
             </div>
             <div class="playBar">
-                <div></div>
+                <div id="barCon" @mousedown="dragDown" @mousemove="dragMove" @mouseup="dragUp">
+                    <div id="prBar"></div>
+                </div>
                 <div>
-                    <div class="timr"></div>
+                    <div class="timr">
+                        <p>{{nowTime}}</p>
+                        <p>{{restTime}}</p>
+                    </div>
                     <div class="playInfo">
                         <div>
                             <figure :style="{backgroundImage:`url(${nowSong.cover})`}"></figure>
@@ -44,21 +49,23 @@
                             </div>
                         </div>
                         <div class="tools">
-                            <button></button>
-                            <button></button>
-                            <button></button>
-                            <button></button>
+                            <button :class="{'shu':isShuffle}" @click="shuffle"></button>
+                            <button @click="pre"></button>
+                            <button @click="start" v-show="!isPlaying"></button>
+                            <button @click="pause" v-show="isPlaying===true"></button>
+                            <button @click="next"></button>
                             <button></button>
                         </div>
                         <div class="vol">
                             <div>
                                 <button></button>
-                                <div class="volBar"></div>
+                                <!-- <div class="volBar"></div> -->
+                                <input type="range" name="volume" id="volume" min="0" max="1" step="0.01" :value="vol" @change="volChange" @mousemove="volChange">
                             </div>
                             <button></button>
                         </div>
                     </div>
-                    <audio controls id="player">
+                    <audio controls id="player" @timeupdate="progress" @canplay="time">
                         <!-- <source src="horse.ogg" type="audio/ogg"> -->
                         <source :src="nowSong.src" type="audio/mpeg">
                     </audio>
@@ -71,7 +78,7 @@
                 <figure></figure>
                 <div class="top">
                     <button></button>
-                    <button @click="next"></button>
+                    <button></button>
                     <button></button>
                 </div>
                 <div class="bottom">
@@ -85,22 +92,153 @@
     </section>
 </template>
 <script>
-import songData from '../../assets/js/songData.js';
+import songdata from '../../assets/js/songData.js';
 export default {
     data () {
         return {
-            songData: songData,
-            nowSong: songData[1],
-            canPlay: false
+            songData: songdata,
+            nowSong: null,
+            no: '0',
+            canPlay: false,
+            repeat: 'all',
+            isShuffle: false,
+            isPause: false,
+            isPlaying: false,
+            vol: 0.5,
+            mouseDown: false,
+            nowTime: '',
+            restTime: ''
 
         };
     },
-    components: {
-
+    computed: {
+        // nowSongTime: function () {
+        //     return 'lkij';
+        // }
+    },
+    watch: {
+        nowSong: {
+            handler (newName, oldName) {
+                console.log('obj.a changed');
+            },
+            deep: true
+        },
+        nowTime () { }
     },
     methods: {
-        cc () {
-            console.log('s');
+        time () {
+            let now = Math.floor(document.getElementById('player').currentTime);
+            let rest = Math.floor(document.getElementById('player').duration) - now;
+            // let minR = Math.floor(rest / 60);
+            // let secR = (rest % 60).toString();
+            // if (secR.length < 2) {
+            //     // sec.split.unshift('0');
+            //     secR = '0' + secR;
+            // }
+            this.restTime = this.cal(rest);
+            this.nowTime = this.cal(now);
+        },
+        cal (t) {
+            let min = Math.floor(t / 60);
+            let sec = (t % 60).toString();
+            if (sec.length < 2) {
+                // sec.split.unshift('0');
+                sec = '0' + sec;
+            }
+            return min + ' : ' + sec;
+        },
+        drag (e) {
+            let pr = document.getElementById('prBar');
+            let barCon = document.getElementById('barCon');
+            // let current = document.getElementById('player').currentTime;
+            let duration = document.getElementById('player').duration;
+            pr.style.width = (e.offsetX / barCon.clientWidth) * 100 + '%';
+            let current = (e.offsetX / barCon.clientWidth) * duration;
+            document.getElementById('player').currentTime = current;
+        },
+        dragUp (e) {
+            // console.log(this.mouseDown);
+            this.drag(e);
+            this.mouseDown = false;
+        },
+        dragMove (e) {
+            if (this.mouseDown) {
+                this.drag(e);
+            }
+        },
+        dragDown (e) {
+            console.log('1');
+            // this.prChange();
+            this.mouseDown = true;
+            console.log(this.mouseDown);
+            if (this.mouseDown) {
+                this.drag(e);
+            }
+        },
+        prChange (e) {
+            console.log(';;');
+            let pr = document.getElementById('prBar');
+            let barCon = document.getElementById('barCon');
+            // let current = document.getElementById('player').currentTime;
+            let duration = document.getElementById('player').duration;
+            pr.style.width = (e.offsetX / barCon.clientWidth) * 100 + '%';
+            let current = (e.offsetX / barCon.clientWidth) * duration;
+            document.getElementById('player').currentTime = current;
+            // console.log(document.getElementById('barCon').clientWidth);
+        },
+        progress () {
+            // console.log('999');
+            this.time();
+            let current = document.getElementById('player').currentTime;
+            let duration = document.getElementById('player').duration;
+
+            document.getElementById('prBar').style.width = (current / duration) * 100 + '%';
+        },
+        volChange (e) {
+            this.vol = document.getElementById('volume').value;
+            // console.log(document.getElementById('volume').value);
+            document.getElementById('player').volume = this.vol;
+        },
+        shuffle () {
+            let self = this;
+            this.isShuffle = !this.isShuffle;
+            if (this.isShuffle === true) {
+                let random = [];
+                let x;
+                let num = 0;
+
+                while (num < this.songData.length) {
+                    x = Math.floor(Math.random() * this.songData.length);
+                    if (random.indexOf(x) < 0) {
+                        random.push(x);
+                        num++;
+                    }
+                }
+                // console.log(random);
+                let arr = [];
+
+                for (let i = 0; i < random.length; i++) {
+                    // console.log(i);
+                    arr = arr.concat(this.songData[random[i]]);
+                    // console.log(this.songData[random[i]]);
+                }
+                // console.log(arr);
+                this.songData = arr;
+            } else {
+                this.songData = songdata;
+            }
+            let b;
+            this.songData.filter(function (item, idx) {
+                if (item.id === self.nowSong.id) {
+                    b = idx;
+                    // console.log(idx);
+                    return idx;
+                } else { }
+            });
+            // console.log(b);
+            this.no = b;
+            this.nowSong = this.songData[b];
+            console.log(this.nowSong);
         },
         numberTrans (num) {
             var num2 = (num || 0).toString();
@@ -120,26 +258,67 @@ export default {
         },
         timeTrans (i) {
             let time = Math.floor(document.getElementsByClassName('player')[i].duration);
-            let min = Math.floor(time / 60);
-            let sec = (time % 60).toString();
-            if (sec.length < 2) {
-                // sec.split.unshift('0');
-                sec = '0' + sec;
-            }
-            document.getElementsByClassName('canPlay')[i].textContent = min + ':' + sec;
+            // let min = Math.floor(time / 60);
+            // let sec = (time % 60).toString();
+            // if (sec.length < 2) {
+            //     // sec.split.unshift('0');
+            //     sec = '0' + sec;
+            // }
+            document.getElementsByClassName('canPlay')[i].textContent = this.cal(time);
             // console.log(i);
-            console.log(sec);
             // console.log(document.getElementsByClassName('player')[i]);
         },
         start (i) {
-            let d = document.getElementById('player').duration;
-            console.log(document.getElementById('player').duration);
-            console.log(this.formatDuring(d));
-            document.getElementById('player').play();
+            document.getElementById('player').volume = this.vol;
+            // let d = document.getElementById('player').duration;
+            // console.log(document.getElementById('player').duration);
+            // console.log(this.formatDuring(d));
+            if (!this.isPlaying) {
+                document.getElementById('player').play();
+                this.isPlaying = true;
+                this.isPause = false;
+            }
+        },
+        pause () {
+            if (this.isPlaying) {
+                document.getElementById('player').pause();
+                this.isPlaying = false;
+                this.isPause = true;
+            }
         },
         next () {
-            console.log('123');
-            this.songData.src = require('../../assets/audio/Empty_Hearted_Man.mp3');
+            // document.getElementById('player').pause();
+
+            let length = this.songData.length;
+            console.log(length);
+            if (this.no === length - 1) {
+                this.no = '0';
+            } else {
+                this.no++;
+            }
+            this.nowSong = this.songData[this.no];
+            document.getElementById('player').load();
+            setTimeout(() => {
+                document.getElementById('player').play();
+            }, 100);
+            this.isPlaying = true;
+            this.isPause = false;
+        },
+        pre () {
+            let length = this.songData.length;
+            console.log(length);
+            if (this.no === '0') {
+                this.no = length - 1;
+            } else {
+                this.no--;
+            }
+            this.nowSong = this.songData[this.no];
+            document.getElementById('player').load();
+            setTimeout(() => {
+                document.getElementById('player').play();
+            }, 100);
+            this.isPlaying = true;
+            this.isPause = false;
         },
         formatDuring (mss) {
             var days = parseInt(mss / (1000 * 60 * 60 * 24));
@@ -150,8 +329,9 @@ export default {
         }
     },
     mounted () {
-        console.log(document.getElementById('player'));
-        // console.log(this.songData);
+        // console.log(document.getElementById('player'));
+        this.nowSong = this.songData[0];
+        console.log(songdata);
         // snd.play();
         // if (snd !== undefined) {
         //     snd.then(_ => {
@@ -162,10 +342,11 @@ export default {
         //             console.log(error);
         //         });
         // }
+        // document.getElementById('player').volume = document.getElementById('volume').value;
     }
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css?family=Poppins&display=swap');
 * {
     outline: 1px solid red;
@@ -178,9 +359,11 @@ section {
     font-family: Poppins;
     color: #fff;
 }
+
 audio {
     display: none;
 }
+
 nav {
     width: 80px;
     height: 100vh;
@@ -264,6 +447,11 @@ main > div:first-child {
     bottom: 0;
     width: 100%;
 }
+#prBar {
+    height: 100%;
+    width: 0%;
+    background-color: #1a1a1a;
+}
 /* .playBar div {
     width: 100%;
 } */
@@ -321,17 +509,26 @@ main > div:first-child {
     height: 15px;
     background-image: url(../../assets/images/pre.svg);
 }
-.tools button:nth-child(4) {
+.tools button:nth-child(5) {
     width: 24.61px;
     height: 15px;
     background-image: url(../../assets/images/next.svg);
     margin-right: 40px;
 }
-.tools button:nth-child(3) {
+.tools button:nth-child(3),
+.tools button:nth-child(4) {
     width: 54px;
     height: 54px;
     margin: 0 21px;
+    background-image: url(../../assets/images/play2.svg);
+}
+.tools button:nth-child(4) {
     background-image: url(../../assets/images/pause2.svg);
+}
+.tools button.shu {
+    width: 20px;
+    height: 20px;
+    background-image: url(../../assets/images/arrow_forward.svg);
 }
 .vol div button {
     width: 25px;
@@ -357,6 +554,8 @@ main > div:first-child {
 }
 .timr {
     height: 17px;
+    display: flex;
+    justify-content: space-between;
 }
 .info {
     height: 100%;
@@ -442,5 +641,26 @@ li div:last-child span {
     background-image: url(../../assets/images/heart.svg);
     background-position: center;
     background-size: cover;
+}
+
+// volume css
+input[type='range'] {
+    -webkit-appearance: none;
+    overflow: hidden;
+    outline: none;
+    background: none;
+    width: 100px;
+    height: 9px;
+    border-radius: 3px;
+    background-color: #fff;
+    margin-left: 10px;
+}
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    position: relative;
+    width: 10px;
+    height: 10px;
+    background: #f22;
+    border-radius: 50%;
 }
 </style>
