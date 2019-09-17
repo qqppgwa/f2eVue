@@ -11,7 +11,7 @@
                         </figure>
                         <div>
                             <p>{{nowSong.album}}</p>
-                            <button @click="start">play</button>
+                            <button @click="start(no)">play</button>
                         </div>
                         <button class="like"></button>
                     </div>
@@ -21,8 +21,8 @@
                                 <!-- <source src="horse.ogg" type="audio/ogg"> -->
                                 <source :src="song.src" type="audio/mpeg">
                             </audio>
-                            <div>{{idx+1}}</div>
-                            <div>{{song.name}}</div>
+                            <div>{{idx+1}}<span class="musicIc" v-show="idx==no"></span></div>
+                            <div @click="start(idx)">{{song.name}}</div>
                             <div><span class="canPlay">--:--</span></div>
                             <div>{{numberTrans(song.likes)}} <span></span> </div>
 
@@ -51,10 +51,13 @@
                         <div class="tools">
                             <button :class="{'shu':isShuffle}" @click="shuffle"></button>
                             <button @click="pre"></button>
-                            <button @click="start" v-show="!isPlaying"></button>
+                            <button @click="start(no)" v-show="!isPlaying"></button>
                             <button @click="pause" v-show="isPlaying===true"></button>
                             <button @click="next"></button>
-                            <button></button>
+                            <button id="repeat" @click="repeat">
+                                <span v-show="repeatType==='all'">all</span>
+                                <span v-show="repeatType==='1'">1</span>
+                            </button>
                         </div>
                         <div class="vol">
                             <div>
@@ -65,7 +68,7 @@
                             <button></button>
                         </div>
                     </div>
-                    <audio controls id="player" @timeupdate="progress" @canplay="time">
+                    <audio controls id="player" @ended="ww" @timeupdate="progress" @canplay="time">
                         <!-- <source src="horse.ogg" type="audio/ogg"> -->
                         <source :src="nowSong.src" type="audio/mpeg">
                     </audio>
@@ -98,9 +101,9 @@ export default {
         return {
             songData: songdata,
             nowSong: null,
-            no: '0',
+            no: 0,
             canPlay: false,
-            repeat: 'all',
+            repeatType: null,
             isShuffle: false,
             isPause: false,
             isPlaying: false,
@@ -119,13 +122,44 @@ export default {
     watch: {
         nowSong: {
             handler (newName, oldName) {
-                console.log('obj.a changed');
+                console.log(newName);
+                console.log(oldName);
             },
             deep: true
         },
         nowTime () { }
     },
     methods: {
+        ww () {
+            // console.log(this.no + 1);
+            let player = document.getElementById('player');
+            console.log(player);
+            if (this.no + 1 < this.songData.length && this.repeatType !== '1') {
+                console.log(this.no);
+                this.no = this.no + 1;
+                this.nowSong = this.songData[this.no];
+            } else if (this.repeatType === 'all') {
+                this.nowSong = this.songData[0];
+            }
+            if (this.repeatType !== null || (this.repeatType === null && this.no + 1 < this.songData.length)) {
+                player.load();
+                player.play();
+            }
+        },
+        repeat () {
+            let player = document.getElementById('player');
+            if (this.repeatType === null) {
+                this.repeatType = 'all';
+                player.addEventListener('ended', () => {
+                    console.log('end');
+                    player.play();
+                });
+            } else if (this.repeatType === 'all') {
+                this.repeatType = '1';
+            } else {
+                this.repeatType = null;
+            }
+        },
         time () {
             let now = Math.floor(document.getElementById('player').currentTime);
             let rest = Math.floor(document.getElementById('player').duration) - now;
@@ -270,14 +304,30 @@ export default {
         },
         start (i) {
             document.getElementById('player').volume = this.vol;
+            console.log(i);
             // let d = document.getElementById('player').duration;
             // console.log(document.getElementById('player').duration);
             // console.log(this.formatDuring(d));
-            if (!this.isPlaying) {
-                document.getElementById('player').play();
-                this.isPlaying = true;
-                this.isPause = false;
+
+            // if (!this.isPlaying && i === undefined) {
+            //     document.getElementById('player').play();
+            //     this.isPlaying = true;
+            //     this.isPause = false;
+            // } else if (i || i === 0) {
+            //     console.log('jioj');
+
+            if (i !== this.no) {
+                this.no = i;
+                this.nowSong = this.songData[i];
+                document.getElementById('player').load();
             }
+            this.no = i;
+            this.nowSong = this.songData[i];
+
+            document.getElementById('player').play();
+            this.isPlaying = true;
+            this.isPause = false;
+            // }
         },
         pause () {
             if (this.isPlaying) {
@@ -319,38 +369,27 @@ export default {
             }, 100);
             this.isPlaying = true;
             this.isPause = false;
-        },
-        formatDuring (mss) {
-            var days = parseInt(mss / (1000 * 60 * 60 * 24));
-            var hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = (mss % (1000 * 60)) / 1000;
-            return days + ' 天 ' + hours + ' 小时 ' + minutes + ' 分钟 ' + seconds + ' 秒 ';
         }
+        // formatDuring (mss) {
+        //     var days = parseInt(mss / (1000 * 60 * 60 * 24));
+        //     var hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        //     var minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60));
+        //     var seconds = (mss % (1000 * 60)) / 1000;
+        //     return days + ' 天 ' + hours + ' 小时 ' + minutes + ' 分钟 ' + seconds + ' 秒 ';
+        // }
     },
     mounted () {
         // console.log(document.getElementById('player'));
         this.nowSong = this.songData[0];
-        console.log(songdata);
-        // snd.play();
-        // if (snd !== undefined) {
-        //     snd.then(_ => {
-        //         // 这个时候可以安全的暂停
-        //         snd.pause();
-        //     })
-        //         .catch(error => {
-        //             console.log(error);
-        //         });
-        // }
-        // document.getElementById('player').volume = document.getElementById('volume').value;
+        // console.log(songdata);
     }
 };
 </script>
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css?family=Poppins&display=swap');
-* {
-    outline: 1px solid red;
-}
+// * {
+//     outline: 1px solid red;
+// }
 
 section {
     width: 100vw;
@@ -503,6 +542,7 @@ main > div:first-child {
     width: 18px;
     height: 20px;
     background-image: url(../../assets/images/repeat.svg);
+    position: relative;
 }
 .tools button:nth-child(2) {
     width: 24.61px;
@@ -618,6 +658,9 @@ li audio {
     display: none;
 }
 li div:nth-child(2) {
+    display: flex;
+    align-items: center;
+
     width: 10%;
 }
 li div:nth-child(3) {
@@ -642,7 +685,13 @@ li div:last-child span {
     background-position: center;
     background-size: cover;
 }
-
+li .musicIc {
+    width: 12px;
+    height: 18px;
+    display: block;
+    margin-left: 10px;
+    background-image: url(../../assets/images/music_note.svg);
+}
 // volume css
 input[type='range'] {
     -webkit-appearance: none;
@@ -662,5 +711,12 @@ input[type='range']::-webkit-slider-thumb {
     height: 10px;
     background: #f22;
     border-radius: 50%;
+}
+#repeat span {
+    // background-color: #eee;
+    color: #fff;
+    position: absolute;
+    right: -100%;
+    width: 15px;
 }
 </style>
