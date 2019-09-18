@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import HelloWorld from '@/components/HelloWorld';
 import HelloWorld2 from '@/components/tomato/HelloWorld2';
 import musicPlayer from '@/components/musicPlayer/index';
+import chatRoom from '@/components/chatRoom/index';
 Vue.use(Router);
 
 export default new Router({
@@ -20,6 +21,11 @@ export default new Router({
         path: '/music',
         name: 'musicPlayer',
         component: musicPlayer
+    },
+    {
+        path: '/chatRoom',
+        name: 'chatRoom',
+        component: chatRoom
     }
     ]
 });
