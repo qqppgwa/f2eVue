@@ -1,6 +1,6 @@
 <template>
     <nav>
-        p
+        <p>{{user.name}}</p>
     </nav>
 
 </template>

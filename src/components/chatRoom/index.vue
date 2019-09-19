@@ -14,19 +14,25 @@
                 <button @click="user.avatartype='cat'">cat</button>
             </div>
             <AvatarList :type="user.avatartype" @changeAvatar="changeAvatar" />
-            <input type="text" placeholder="暱稱" v-model.lazy="user.name">
+            <input type="text" placeholder="暱稱" v-model.trim="user.name">
             <button :disabled="user.name.length<1" @click="enter">進入</button>
         </div>
         <!-- --------------------------------chat---------------------------------------- -->
 
         <div v-if="inChat" class="hall">
             <div v-if="chatMode==='hall'">
-                <div v-for="(d,idx) in data" :key="idx" class="item">
+                <div v-for="(d,idx) in data" :key="idx" class="item" :class="{me:d.name===user.name}">
                     <figure v-if="d.avatar" :style="{backgroundImage:`url(${require('@/assets/images/'+d.avatar+'.png')}`}">
                         <figcaption>{{d.name}}</figcaption>
                     </figure>
                     <div v-if="d.type==='text'">
                         <p>{{d.context}}</p>
+                    </div>
+                    <div v-if="d.type==='file'">
+                        name:{{d.fileName}} <br>
+                        type:{{d.fileType}} <br>
+                        size:{{d.size}} <br>
+                        <a download target="_blank" :href="d.url">open</a>
                     </div>
                     <p v-if="d.type==='news'&&d.status" class="news">
                         <span>{{d.name}}</span>進入聊天
@@ -36,10 +42,13 @@
             <div class="typeArea">
                 <div class="tool">
                     <button></button>
-                    <button></button>
+                    <button @change="uploadFile">
+                        <input type="file" id="file">
+
+                    </button>
                     <button></button>
                 </div>
-                <input type="text">
+                <input type="text" v-model.trim="chatTxt" @keydown.enter="sendMsg"><button @click="sendMsg"></button>
             </div>
 
         </div>
@@ -53,9 +62,10 @@
 </template>
 <script>
 
-import { db } from '../../firebase';
+import { db, storage } from '../../firebase';
 import AvatarList from './avatarList';
 import navMenu from './navMenu';
+
 // var db = fire.database().ref('/hall/');
 // var db = new Fire('https://froggychat-ce2ec.firebaseio.com');
 // const itemsRef = new Firebase('https://geocld-vuefire-demo.firebaseio.com/');
@@ -71,9 +81,22 @@ export default {
                 avatarId: 'd-1',
                 name: ''
             },
-            chatMode: 'hall'
+            chatMode: 'hall',
+            chatTxt: ''
 
         };
+    },
+    watch: {
+        data () {
+            // console.log('kk');
+            if (this.inChat) {
+                // window.scrollTo(0, 99999);
+                setTimeout(function () {
+                    console.log('m');
+                    window.scrollTo(0, 99999);
+                }, 200);
+            }
+        }
     },
     components: {
         AvatarList,
@@ -81,19 +104,83 @@ export default {
     },
     firestore () {
         return {
-            data: db.collection('chatRoom').doc('hall').collection('message')
+            data: db.collection('chatRoom').doc('hall').collection('message').orderBy('timeStamp')
         };
     },
     methods: {
+        uploadFile (e) {
+            console.log(e);
+            console.log(e.target.files);
+            // let downloadURL;
+            let file = e.target.files[0];
+            // let name =(file.name.split('.'))[0];
+            // let size=file.size+' kb'
+            let store = storage.ref('file').child(file.name).put(file);
+            store.then(snap => {
+                snap.ref.getDownloadURL().then(url => {
+                    console.log(url);
+                    // downloadURL = url;
+                    db.collection('chatRoom').doc('hall').collection('message').add({
+                        name: this.user.name,
+                        type: 'file',
+                        url: url,
+                        fileName: (file.name.split('.'))[0],
+                        size: file.size + ' kb',
+                        fileType: (file.name.split('.'))[1],
+                        // context: this.chatTxt,
+                        avatar: this.user.avatarId,
+                        timeStamp: new Date()
+                    }).then(() => {
+                        // this.chatTxt = '';
+                    });
+                });
+                // console.log(b);
+                // return fileRef.getDownloadURL();
+            });
+            console.log(store);
+        },
+        sendMsg () {
+            // console.log(this.chatTxt);
+            if (this.chatTxt.length > 0) {
+                db.collection('chatRoom').doc('hall').collection('message').add({
+                    name: this.user.name,
+                    type: 'text',
+                    context: this.chatTxt,
+                    avatar: this.user.avatarId,
+                    timeStamp: new Date()
+                }).then(() => {
+                    this.chatTxt = '';
+                });
+            }
+            // window.scrollTo(0, 99999);
+        },
         changeAvatar (i) {
             this.user.avatarId = i;
         },
         enter () {
             this.inChat = true;
+
+            // this.$firestoreRefs;
+            // console.log(this.$firestoreRefs);
+            //  this.$firestoreRefs.chatRoom.hall.message.add({
+            db.collection('chatRoom').doc('hall').collection('message').add({
+                name: this.user.name,
+                type: 'news',
+                status: true,
+                timeStamp: new Date()
+            }).then(() => {
+                // console.log('ko');
+                // setTimeout(() => {
+                window.scrollTo(0, 99999);
+                // }, 500);
+            });
         }
     },
     mounted () {
-        console.log(db);
+        setTimeout(() => {
+            console.log(storage);
+        }, 500);
+
         // let teamRef = fire.collection('chatRoom').doc('hall').collection('message');
         // teamRef.onSnapshot((snapshot) => {
         //     console.log(snapshot);
@@ -169,11 +256,18 @@ nav {
     text-align: center;
 }
 .hall {
-    margin-top: 30px;
+    margin-top: 10px;
+    padding-bottom: 50px;
 }
 .item {
     display: flex;
     margin-bottom: 10px;
+    &.me {
+        flex-direction: row-reverse;
+        div {
+            flex-direction: row-reverse;
+        }
+    }
     figure {
         width: 100px;
         height: 100px;
@@ -183,6 +277,9 @@ nav {
         display: flex;
         align-items: flex-end;
         justify-content: center;
+    }
+    .news {
+        font-size: 11px;
     }
     div {
         width: calc(100vw - 120px);
@@ -207,23 +304,36 @@ nav {
     position: fixed;
     bottom: 0;
     display: flex;
+    align-items: center;
+    padding-right: 5px;
+
     .tool {
         width: 100px;
+        height: 100%;
         display: flex;
         align-items: center;
+        justify-content: space-around;
         button {
             width: 20px;
             height: 20px;
-            background-color: #524a4a;
+
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
+            outline: none;
             &:first-child {
                 background-image: url(../../assets/images/photo.svg);
             }
             &:nth-child(2) {
+                background-image: url(../../assets/images/file.svg);
+                input {
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0;
+                }
             }
             &:last-child {
+                background-image: url(../../assets/images/smile.svg);
             }
         }
 
@@ -236,10 +346,18 @@ nav {
         }
     }
     input {
-        width: calc(100% - 100px);
+        width: calc(100% - 128px);
         background-color: transparent;
         border: none;
         outline: none;
+        & + button {
+            width: 28px;
+            height: 28px;
+            background-image: url(../../assets/images/send.png);
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
     }
 }
 </style>
