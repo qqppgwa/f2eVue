@@ -20,8 +20,11 @@ export default {
     methods: {
         addTodo () {
             console.log(this.input);
-            this.$emit('addTodo', { input: this.input,
-                done: false });
+            this.$emit('addTodo', {
+                input: this.input,
+                done: false,
+                id: 1
+            });
             setTimeout(() => {
                 this.input = '';
             }, 100);

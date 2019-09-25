@@ -1,18 +1,31 @@
 <template>
     <div class="timer">
+
         <div class="time">
-            <p>
-                <span v-if="minW<10">0</span><span id="min">{{minW}}</span>:<span v-if="secW<10">0</span><span id="sec">{{secW}}</span>
+            <p class="nowName" v-if="nowDo">{{nowDo.input}}</p>
+            <p v-if="!isBreak">
+                <span v-if="work.min<10">0</span><span id="min">{{work.min}}</span>:<span v-if="work.sec<10">0</span><span id="sec">{{work.sec}}</span>
+            </p>
+            <p v-if="isBreak">
+                <span v-if=" rest.min<10">0</span><span id="min">{{rest.min}}</span>:<span v-if=" rest.sec<10">0</span><span id="sec">{{rest.sec}}</span>
             </p>
         </div>
-        <div :class="{pause:isStartW===false}">
-            <svg>
+
+        <div :class="[{pause:isStartW===false}, classS]">
+            <svg v-if="!isBreak">
                 <circle class="border" />
+                <circle class="progress" :style="{strokeDasharray: work.circle }" />
+                <circle class="inner" />
+                <!-- <button></button> -->
+            </svg>
+            <svg v-if="isBreak">
+                <circle class="border" />
+                <circle class="progress" :style="{strokeDasharray: rest.circle }" />
                 <circle class="inner" />
                 <!-- <button></button> -->
             </svg>
             <button class="play" @click="isStartW=!isStartW,startCal()"></button>
-            <button class="break"></button>
+            <button class="breakBtn" @click="isBreak=!isBreak,startCal()"></button>
         </div>
 
         <!-- <div> -->
@@ -23,53 +36,108 @@
 <script>
 
 export default {
+    props: ['nowDo'],
     data () {
         return {
+            work: {
+                sec: 0,
+                min: 0,
+                circle: 1646,
+                timer: ''
+            },
+            rest: {
+                sec: 0,
+                min: 0,
+                circle: 1646,
+                timer: ''
+            },
             // input: ''
             w: '',
-            secW: 10,
-            minW: 25,
+
             isStartW: null,
-            break: false
+            isBreak: false
 
         };
+    },
+    computed: {
+        classS () {
+            return this.isBreak ? 'break' : 'working';
+        }
+    },
+    watch: {
+        circle () { },
+        nowDo: {
+            handler (i) {
+                console.log('jij');
+                this.rest.sec = 0;
+                this.rest.min = 5;
+                this.work.sec = 0;
+                this.work.min = 25;
+                if (i === null) {
+                    this.rest.sec = 0;
+                    this.rest.min = 0;
+                    this.work.sec = 0;
+                    this.work.min = 0;
+                }
+            },
+            deep: true
+        },
+        work: {
+            handler (t) {
+                this.$emit('timer', 1, t);
+            },
+            deep: true
+        },
+        rest: {
+            handler (t) {
+                this.$emit('timer', 2, t);
+            },
+            deep: true
+        }
     },
     methods: {
         startCal () {
             let self = this;
-            // self.pauseW = false;
-            // self.pauseW = !!self.pauseW;
-            // this.pauseW = !this.pauseW;
-            console.log(self.pauseW);
-            if (self.isStartW === true) {
-                self.w = setTimeout(() => {
-                    if (self.secW === 0 && self.minW !== 0) {
-                        console.log('1');
-                        // console.log(self.secW);
-                        self.secW = '59';
-                        self.minW--;
-                        self.startCal();
-                    } else if (self.secW !== 0) {
-                        self.secW--;
-                        self.startCal();
-                    }
-                }, 1000);
+            if (self.isStartW === true && self.nowDo) {
+                if (self.isBreak) {
+                    clearTimeout(self.work.timer);
+                    self.rest.timer = setTimeout(() => {
+                        console.log('brea');
+                        if (self.rest.sec === 0 && self.rest.min !== 0) {
+                            self.rest.sec = '59';
+                            self.rest.min--;
+
+                            self.rest.circle = self.rest.circle + self.rest.circle / (5 * 60);
+                            self.startCal();
+                        } else if (self.rest.sec !== 0) {
+                            self.rest.sec--;
+                            self.rest.circle = self.rest.circle + self.rest.circle / (5 * 60);
+                            self.startCal();
+                        }
+                    }, 1000);
+                } else {
+                    clearTimeout(self.rest.timer);
+
+                    self.work.timer = setTimeout(() => {
+                        if (self.work.sec === 0 && self.work.min !== 0) {
+                            self.work.sec = '59';
+                            self.work.min--;
+
+                            self.work.circle = self.work.circle + self.work.circle / (25 * 60);
+                            self.startCal();
+                        } else if (self.work.sec !== 0) {
+                            self.work.sec--;
+                            self.work.circle = self.work.circle + self.work.circle / (25 * 60);
+                            self.startCal();
+                        }
+                    }, 1000);
+                }
             } else {
                 console.log('222');
-                clearTimeout(self.w);
+                clearTimeout(self.work.timer);
             }
         }
-        //         loopCal(){
-        // setInterval
-        //         }
-        // addTodo () {
-        //     console.log(this.input);
-        //     this.$emit('addTodo', { input: this.input,
-        //         done: false });
-        //     setTimeout(() => {
-        //         this.input = '';
-        //     }, 100);
-        // }
+
     }
 };
 </script>
@@ -89,26 +157,66 @@ svg {
     width: 454px;
     margin-right: 26px;
 }
+.time .nowName {
+    font-size: 25px;
+    position: absolute;
+    top: 150px;
+    padding-left: 20px;
+    color: #003164;
+}
+.working .border {
+    stroke: #ff4384;
+}
+.break .border {
+    stroke: #00a7ff;
+}
 .border {
     cx: 270;
     cy: 270;
     r: 268;
     fill: none;
-    stroke: #ff4384;
     stroke-width: 4px;
 }
+.working .progress {
+    stroke: #ff4384;
+}
+.break .progress {
+    stroke: #00a7ff;
+}
+.progress {
+    cx: -270;
+    cy: 270;
+    r: 262;
+    fill: none;
 
+    stroke-width: 8px;
+
+    stroke-dashoffset: 1646; /*1646圓周長 */
+    transform: rotate(-90deg);
+}
+.working .inner {
+    fill: #ff4384;
+}
+.break .inner {
+    fill: #00a7ff;
+}
 .inner {
     cx: 270;
     cy: 270;
     r: 258;
-    fill: #ff4384;
+    /* fill: #ff4384; */
     /* stroke: #ff4384;
     stroke-width: 4px; */
 }
+.working .pause .inner {
+    stroke: #ff4384;
+}
+.break .pause .inner {
+    stroke: #00a7ff;
+}
 .pause .inner {
     fill: #fff;
-    stroke: #ff4384;
+    /* stroke: #ff4384; */
     stroke-width: 4px;
 }
 button {
@@ -147,7 +255,7 @@ button {
 .time + div {
     position: relative;
 }
-.break {
+.breakBtn {
     width: 18px;
     height: 18px;
     background-color: #fff;
@@ -158,7 +266,7 @@ button {
     margin: auto;
     position: absolute;
 }
-.pause .break {
+.pause .breakBtn {
     background-color: #ff4384;
 }
 </style>

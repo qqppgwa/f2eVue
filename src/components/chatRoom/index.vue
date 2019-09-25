@@ -1,6 +1,7 @@
 <template>
     <section>
         <header>
+
             <div v-if="inChat" @click="showMenu=!showMenu">@@</div>
         </header>
         <navMenu v-if="user.name" :class="{slideIn:showMenu}" :user="user" />
@@ -32,23 +33,31 @@
                         name:{{d.fileName}} <br>
                         type:{{d.fileType}} <br>
                         size:{{d.size}} <br>
-                        <a download target="_blank" :href="d.url">open</a>
+                        <a download :href="d.url">open</a>
+                    </div>
+                    <div v-if="d.type==='image'">
+                        <img :src="d.url" :alt="d.fileName">
                     </div>
                     <p v-if="d.type==='news'&&d.status" class="news">
                         <span>{{d.name}}</span>進入聊天
                     </p>
+                    <p>{{typeof(d.timeStamp)}}</p>
                 </div>
             </div>
             <div class="typeArea">
                 <div class="tool">
-                    <button></button>
+                    <button @change="uploadFile">
+                        <input type="file" id="image" accept="image/*">
+                    </button>
                     <button @change="uploadFile">
                         <input type="file" id="file">
 
                     </button>
                     <button></button>
                 </div>
+                <emoji class="emo" @addEmo="addEmo" />
                 <input type="text" v-model.trim="chatTxt" @keydown.enter="sendMsg"><button @click="sendMsg"></button>
+                <!-- <div contenteditable @keydown.enter="sendMsg">{{chatTxt.trim()}}</div><button @click="sendMsg"></button> -->
             </div>
 
         </div>
@@ -65,11 +74,7 @@
 import { db, storage } from '../../firebase';
 import AvatarList from './avatarList';
 import navMenu from './navMenu';
-
-// var db = fire.database().ref('/hall/');
-// var db = new Fire('https://froggychat-ce2ec.firebaseio.com');
-// const itemsRef = new Firebase('https://geocld-vuefire-demo.firebaseio.com/');
-// const db = fire.firestore();
+import emoji from './emoji';
 export default {
     data () {
         return {
@@ -100,7 +105,8 @@ export default {
     },
     components: {
         AvatarList,
-        navMenu
+        navMenu,
+        emoji
     },
     firestore () {
         return {
@@ -108,25 +114,31 @@ export default {
         };
     },
     methods: {
+        addEmo (emo) {
+            // console.log(window.getSelection());
+            // let v = window.getSelection().getRangeAt(0).deleteContents();
+            // console.log(v);
+            // let f = html;
+        },
         uploadFile (e) {
             console.log(e);
-            console.log(e.target.files);
+            console.log(e.target);
             // let downloadURL;
             let file = e.target.files[0];
-            // let name =(file.name.split('.'))[0];
-            // let size=file.size+' kb'
-            let store = storage.ref('file').child(file.name).put(file);
+            let type = (file.type.split('/'))[0] === 'image' ? 'image' : 'file';
+            // let size = file.size + ' kb';
+            let store = storage.ref(type).child(file.name).put(file);
             store.then(snap => {
                 snap.ref.getDownloadURL().then(url => {
                     console.log(url);
                     // downloadURL = url;
                     db.collection('chatRoom').doc('hall').collection('message').add({
                         name: this.user.name,
-                        type: 'file',
+                        type: type,
                         url: url,
-                        fileName: (file.name.split('.'))[0],
+                        fileName: file.name.split('.'),
                         size: file.size + ' kb',
-                        fileType: (file.name.split('.'))[1],
+                        // fileType: (file.name.split('.'))[1],
                         // context: this.chatTxt,
                         avatar: this.user.avatarId,
                         timeStamp: new Date()
@@ -137,21 +149,26 @@ export default {
                 // console.log(b);
                 // return fileRef.getDownloadURL();
             });
-            console.log(store);
+            console.log(file);
         },
         sendMsg () {
             // console.log(this.chatTxt);
+            // time;
+            console.log(this.chatTxt.split(''));
             if (this.chatTxt.length > 0) {
-                db.collection('chatRoom').doc('hall').collection('message').add({
+                let time = {
                     name: this.user.name,
                     type: 'text',
                     context: this.chatTxt,
                     avatar: this.user.avatarId,
-                    timeStamp: new Date()
-                }).then(() => {
+                    timeStamp: new Date().toUTCString()
+                };
+                db.collection('chatRoom').doc('hall').collection('message').add(time).then(() => {
                     this.chatTxt = '';
+                    console.log(time);
                 });
             }
+
             // window.scrollTo(0, 99999);
         },
         changeAvatar (i) {
@@ -159,7 +176,9 @@ export default {
         },
         enter () {
             this.inChat = true;
+            let f = new Date();
 
+            console.log(f.getHours());
             // this.$firestoreRefs;
             // console.log(this.$firestoreRefs);
             //  this.$firestoreRefs.chatRoom.hall.message.add({
@@ -177,37 +196,18 @@ export default {
         }
     },
     mounted () {
-        setTimeout(() => {
-            console.log(storage);
-        }, 500);
-
-        // let teamRef = fire.collection('chatRoom').doc('hall').collection('message');
-        // teamRef.onSnapshot((snapshot) => {
-        //     console.log(snapshot);
-        //     if (snapshot.docs[0].exists) {
-        //         let docData = snapshot.docs[0].data();
-        //         console.log(docData);
-        //     }
-        // });
-        // teamRef.onSnapshot(s => {
-        //     console.log(s);
-        // });
-        // console.log(teamRef);
-        // teamRef.get().then((doc) => {
-        // console.log(doc.data);
-        // if (doc.exists) {
-        //     let docData = doc.data();
-        //     console.log(docData);
-        // }
-        // });
-        // console.log(fire);
-        // let Ref = Firebase.firebase_.firestore.collection('chatroom').doc('hall').collection('message').orderBy('timeStamp');
+        console.log(new Date());
     }
 
     // created () { }
 };
 </script>
 <style scoped lang="scss">
+.emo {
+    position: absolute;
+    bottom: 50px;
+    display: none;
+}
 * {
     font-family: '微軟正黑體';
 }
@@ -262,6 +262,7 @@ nav {
 .item {
     display: flex;
     margin-bottom: 10px;
+    align-items: center;
     &.me {
         flex-direction: row-reverse;
         div {
@@ -292,6 +293,10 @@ nav {
             background-color: #524a4a;
             padding: 20px;
         }
+        img {
+            width: 100%;
+            max-height: 30vh;
+        }
     }
     .news {
         margin: auto;
@@ -321,16 +326,16 @@ nav {
             background-size: cover;
             background-repeat: no-repeat;
             outline: none;
+            input {
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+            }
             &:first-child {
                 background-image: url(../../assets/images/photo.svg);
             }
             &:nth-child(2) {
                 background-image: url(../../assets/images/file.svg);
-                input {
-                    width: 100%;
-                    height: 100%;
-                    opacity: 0;
-                }
             }
             &:last-child {
                 background-image: url(../../assets/images/smile.svg);

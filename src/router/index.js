@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import HelloWorld from '@/components/HelloWorld';
-import HelloWorld2 from '@/components/tomato/HelloWorld2';
+import tomato from '@/components/tomato/tomato';
 import musicPlayer from '@/components/musicPlayer/index';
 import chatRoom from '@/components/chatRoom/index';
 Vue.use(Router);
@@ -14,8 +14,8 @@ export default new Router({
     },
     {
         path: '/tomato/',
-        name: 'HelloWorld2',
-        component: HelloWorld2
+        name: 'tomato',
+        component: tomato
     },
     {
         path: '/music',

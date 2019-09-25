@@ -5,53 +5,127 @@
         <main>
             <listInput @addTodo="addTodo" />
             <ul>
-                <li v-for="(item,i) in list.slice(1, 3)" :key="i">
+                <li v-for="(item,i) in list.slice(0, 3)" :key="i">
                     <button @click="done(i)" class="finish"></button>
-                    <p :class="{done:item.done===true}"> {{item.input}}</p><button class="start"></button>
+                    <p :class="{done:item.done===true}"> {{item.input}}</p>
+                    <button class="start" @click="toDo(i)"></button>
                 </li>
-                <button v-if="list.length>3">MORE</button>
+                <button v-if="list.length >3">MORE</button>
             </ul>
-            <timer class="timer" />
+            <timer class="timer" :nowDo="nowDo" @timer="timer" />
             <nav>
                 <div>
-                    <a href=""></a>
-                    <a href=""></a>
-                    <a href=""></a>
+                    <button></button>
+                    <!-- <button></button> -->
+                    <button @click="showBox('ring')"></button>
                 </div>
-
                 <p>POMODORO</p>
             </nav>
 
         </main>
+        <transition name="slide-fade">
+            <listBox class="listBox" v-if="box" :work="work" :rest="rest" :type="type" @close="box=false,type=''" @ring="ring" />
+        </transition>
 
     </section>
 </template>
 <script>
 import listInput from './listInput.vue';
 import timer from './timer.vue';
+import listBox from './listBox';
 export default {
     data () {
         return {
-            list: []
+            list: [],
+            nowDo: null,
+            box: false,
+            type: '',
+            work: {
+                sec: 0,
+                min: 0,
+                circle: 1646,
+                timer: '',
+                ring: ''
+            },
+            rest: {
+                sec: 0,
+                min: 0,
+                circle: 1646,
+                timer: ''
+            }
         };
     },
+    watch: {
+        nowDo () {
+        },
+        work () { },
+        rest () { }
+    },
     components: {
-        listInput, timer
+        listInput,
+        timer,
+        listBox
     },
     methods: {
+        ring (type, r) {
+            this[type].ring = r;
+            console.log(this[type]);
+        },
+        showBox (type) {
+            this.box = true;
+            this.type = type;
+        },
+        timer (type, value) {
+            if (type === 1) {
+                this.work = value;
+            } else {
+                this.rest = value;
+            }
+        },
         addTodo (val) {
             console.log(val);
+            let a = val;
+            if (this.list.length > 0) {
+                console.log(a.id);
+
+                a.id = this.list[this.list.length - 1].id + 1;
+            }
             this.list.push(val);
+        },
+        toDo (i) {
+            this.nowDo = this.list[i];
+            this.list[i].done = false;
         },
         done (i) {
             console.log(this.list[i]);
             this.list[i].done = !this.list[i].done;
+            if (this.nowDo && this.list[i].id === this.nowDo.id) {
+                this.nowDo = null;
+            }
         }
     }
 };
 </script>
 <style scoped>
 @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+.listBox {
+    position: fixed;
+    /* top: 0; */
+    width: 100%;
+    height: 100vh;
+    background-color: #003164;
+}
+.slide-fade-enter-active {
+    transition: 0.3s;
+}
+.slide-fade-leave-active {
+    transition: 0.8s;
+}
+.slide-fade-enter, .slide-fade-leave-to
+/* .slide-fade-leave-active for below version 2.1.8 */ {
+    /* transform: translateX(10px); */
+    opacity: 0;
+}
 button {
     outline: none;
     padding: 0;
@@ -106,7 +180,7 @@ nav p {
     writing-mode: vertical-rl;
     color: #fff;
 }
-nav a {
+nav button {
     display: block;
     width: 36px;
     height: 36px;
@@ -114,17 +188,18 @@ nav a {
     background-size: cover;
     margin-bottom: 48px;
 }
-nav a:first-child {
+nav button:first-child {
     background-image: url(../../assets/images/list.svg);
 }
-nav a:nth-child(2) {
+/* nav button:nth-child(2) {
     background-image: url(../../assets/images/stereo.svg);
-}
-nav a:last-child {
+} */
+nav button:last-child {
     background-image: url(../../assets/images/music.svg);
 }
 ul {
     width: 445px;
+    z-index: 10;
 }
 ul li {
     display: flex;
