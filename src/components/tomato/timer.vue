@@ -24,8 +24,8 @@
                 <circle class="inner" />
                 <!-- <button></button> -->
             </svg>
-            <button class="play" @click="isStartW=!isStartW,startCal()"></button>
-            <button class="breakBtn" @click="isBreak=!isBreak,startCal()"></button>
+            <button class="play" @click="isStartW=nowDo?!isStartW:null,startCal()"></button>
+            <button class="breakBtn" @click="isBreak=!isBreak,modeChange(),startCal()"></button>
         </div>
 
         <!-- <div> -->
@@ -34,7 +34,7 @@
     </div>
 </template>
 <script>
-
+import { eventBus } from '../../assets/js/eventBus.js';
 export default {
     props: ['nowDo'],
     data () {
@@ -53,7 +53,6 @@ export default {
             },
             // input: ''
             w: '',
-
             isStartW: null,
             isBreak: false
 
@@ -68,11 +67,10 @@ export default {
         circle () { },
         nowDo: {
             handler (i) {
-                console.log('jij');
-                this.rest.sec = 0;
-                this.rest.min = 5;
-                this.work.sec = 0;
-                this.work.min = 25;
+                this.rest.sec = 2;
+                this.rest.min = 0;
+                this.work.sec = 3;
+                this.work.min = 3;
                 if (i === null) {
                     this.rest.sec = 0;
                     this.rest.min = 0;
@@ -84,20 +82,24 @@ export default {
         },
         work: {
             handler (t) {
-                this.$emit('timer', 1, t);
+                this.$emit('timer', 'work', t);
             },
             deep: true
         },
         rest: {
             handler (t) {
-                this.$emit('timer', 2, t);
+                this.$emit('timer', 'rest', t);
             },
             deep: true
         }
     },
     methods: {
+        modeChange () {
+            this.$emit('mode', this.isBreak ? 'rest' : 'work');
+        },
         startCal () {
             let self = this;
+
             if (self.isStartW === true && self.nowDo) {
                 if (self.isBreak) {
                     clearTimeout(self.work.timer);
@@ -113,31 +115,41 @@ export default {
                             self.rest.sec--;
                             self.rest.circle = self.rest.circle + self.rest.circle / (5 * 60);
                             self.startCal();
+                        } else {
+                            self.isStartW = false;
                         }
                     }, 1000);
                 } else {
                     clearTimeout(self.rest.timer);
-
                     self.work.timer = setTimeout(() => {
                         if (self.work.sec === 0 && self.work.min !== 0) {
                             self.work.sec = '59';
                             self.work.min--;
-
                             self.work.circle = self.work.circle + self.work.circle / (25 * 60);
                             self.startCal();
                         } else if (self.work.sec !== 0) {
                             self.work.sec--;
                             self.work.circle = self.work.circle + self.work.circle / (25 * 60);
                             self.startCal();
+                        } else {
+                            self.isStartW = null;
                         }
                     }, 1000);
                 }
             } else {
-                console.log('222');
                 clearTimeout(self.work.timer);
             }
         }
 
+    },
+    mounted () {
+        eventBus.$on('isPause', () => {
+            this.isStartW = !this.isStartW;
+            this.startCal();
+        });
+    },
+    destroyed () {
+        eventBus.$off('isPause');
     }
 };
 </script>

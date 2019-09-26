@@ -3,7 +3,7 @@
 
         <div class="bar"></div>
         <main>
-            <listInput @addTodo="addTodo" />
+            <listInput class="inputArea" @addTodo="addTodo" />
             <ul>
                 <li v-for="(item,i) in list.slice(0, 3)" :key="i">
                     <button @click="done(i)" class="finish"></button>
@@ -12,21 +12,24 @@
                 </li>
                 <button v-if="list.length >3">MORE</button>
             </ul>
-            <timer class="timer" :nowDo="nowDo" @timer="timer" />
+            <timer class="timer" :nowDo="nowDo" @timer="timer" @mode="modeChange" />
             <nav>
                 <div>
-                    <button></button>
+                    <button @click="showBox('doList')"></button>
                     <!-- <button></button> -->
                     <button @click="showBox('ring')"></button>
                 </div>
                 <p>POMODORO</p>
             </nav>
+            <audio class="player2">
+                <!-- <source src="horse.ogg" type="audio/ogg"> -->
+                <source :src="this[mode].ring" type="audio/mpeg">
+            </audio>
 
         </main>
         <transition name="slide-fade">
-            <listBox class="listBox" v-if="box" :work="work" :rest="rest" :type="type" @close="box=false,type=''" @ring="ring" />
+            <listBox class="listBox" v-if="box" :work="work" :rest="rest" :mode=mode :type="type" :nowDo="nowDo" :list="list" @close="box=false,type=''" @ring="ring" />
         </transition>
-
     </section>
 </template>
 <script>
@@ -40,6 +43,7 @@ export default {
             nowDo: null,
             box: false,
             type: '',
+            mode: 'work',
             work: {
                 sec: 0,
                 min: 0,
@@ -51,15 +55,14 @@ export default {
                 sec: 0,
                 min: 0,
                 circle: 1646,
-                timer: ''
+                timer: '',
+                ring: ''
             }
         };
     },
     watch: {
         nowDo () {
-        },
-        work () { },
-        rest () { }
+        }
     },
     components: {
         listInput,
@@ -69,26 +72,36 @@ export default {
     methods: {
         ring (type, r) {
             this[type].ring = r;
-            console.log(this[type]);
+            document.getElementsByClassName('player2')[0].load();
+        },
+        modeChange (m) {
+            this.mode = m;
+
+            document.getElementsByClassName('player2')[0].load();
         },
         showBox (type) {
             this.box = true;
             this.type = type;
         },
         timer (type, value) {
-            if (type === 1) {
-                this.work = value;
+            let player = document.getElementsByClassName('player2')[0];
+            if (type === 'work') {
+                this.work = Object.assign({}, this.work, value);
             } else {
-                this.rest = value;
+                this.rest = Object.assign({}, this.rest, value);
+            }
+            if (this[type].sec === 0 && this[type].min === 0) {
+                const pp = player.play();
+                if (pp !== null) {
+                    pp.catch(() => {
+                        player.play();
+                    });
+                }
             }
         },
         addTodo (val) {
-            console.log(val);
-            let a = val;
             if (this.list.length > 0) {
-                console.log(a.id);
-
-                a.id = this.list[this.list.length - 1].id + 1;
+                val.id = this.list[this.list.length - 1].id + 1;
             }
             this.list.push(val);
         },
@@ -97,7 +110,6 @@ export default {
             this.list[i].done = false;
         },
         done (i) {
-            console.log(this.list[i]);
             this.list[i].done = !this.list[i].done;
             if (this.nowDo && this.list[i].id === this.nowDo.id) {
                 this.nowDo = null;
@@ -114,6 +126,10 @@ export default {
     width: 100%;
     height: 100vh;
     background-color: #003164;
+}
+.inputArea {
+    width: 445px;
+    height: 56px;
 }
 .slide-fade-enter-active {
     transition: 0.3s;
