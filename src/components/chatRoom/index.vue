@@ -22,18 +22,19 @@
 
         <div v-if="inChat" class="hall">
             <div v-if="chatMode==='hall'">
-                <div v-for="(d,idx) in data" :key="idx" class="item" :class="{me:d.name===user.name}">
+                <div v-for="(d,idx) in data" :key="idx" class="item" :class="{me:d.name===user.name&&d.type!=='news'}">
                     <figure v-if="d.avatar" :style="{backgroundImage:`url(${require('@/assets/images/'+d.avatar+'.png')}`}">
                         <figcaption>{{d.name}}</figcaption>
                     </figure>
                     <div v-if="d.type==='text'">
                         <p>{{d.context}}</p>
                     </div>
-                    <div v-if="d.type==='file'">
-                        name:{{d.fileName}} <br>
-                        type:{{d.fileType}} <br>
-                        size:{{d.size}} <br>
-                        <a download :href="d.url">open</a>
+                    <div v-if="d.type==='file'" class="file">
+                        <p>name:{{d.fileName}} </p>
+                        <p>type:{{d.fileType}}</p>
+                        <p>size:{{d.size}}</p>
+                        <p><a download :href="d.url">click to open</a></p>
+
                     </div>
                     <div v-if="d.type==='image'">
                         <img :src="d.url" :alt="d.fileName">
@@ -41,7 +42,8 @@
                     <p v-if="d.type==='news'&&d.status" class="news">
                         <span>{{d.name}}</span>進入聊天
                     </p>
-                    <p>{{typeof(d.timeStamp)}}</p>
+                    <p>{{dateFormat(d.timeStamp)}}</p>
+                    <!-- <p>{{d.timeStamp.getHours()}}</p> -->
                 </div>
             </div>
             <div class="typeArea">
@@ -53,10 +55,12 @@
                         <input type="file" id="file">
 
                     </button>
-                    <button></button>
+                    <button @click="showEmo=!showEmo"></button>
                 </div>
-                <emoji class="emo" @addEmo="addEmo" />
-                <input type="text" v-model.trim="chatTxt" @keydown.enter="sendMsg"><button @click="sendMsg"></button>
+                <emoji v-if="showEmo" class="emo" @addEmo="addEmo" />
+                <input type="text" v-model.trim="chatTxt" id="inputArea" @keydown.enter="sendMsg">
+                <!-- <div aria-label="textInput" id="inputArea" v-text="chatTxt" contenteditable @blur="typing" v-html="chatTxt"></div> -->
+                <button @click="sendMsg"></button>
                 <!-- <div contenteditable @keydown.enter="sendMsg">{{chatTxt.trim()}}</div><button @click="sendMsg"></button> -->
             </div>
 
@@ -87,7 +91,8 @@ export default {
                 name: ''
             },
             chatMode: 'hall',
-            chatTxt: ''
+            chatTxt: '',
+            showEmo: false
 
         };
     },
@@ -114,11 +119,93 @@ export default {
         };
     },
     methods: {
+        dateFormat (t) {
+            let now = new Date();
+            let past = new Date(t); console.log(past);
+            let daySec = 1000 * 60 * 60 * 24;// 天
+            let week = daySec * 7;
+            let year = past.getFullYear();
+            let mon = past.getMonth();
+            let day = function () {
+                let d = past.getDay();
+                switch (d) {
+                case 0:
+                    return 'Sun.';
+                case 1:
+                    return 'Mon.';
+                case 2:
+                    return 'Tue.';
+                case 3:
+                    return 'Wed.';
+                case 4:
+                    return 'Thu.';
+                case 5:
+                    return 'Fri.';
+                case 6:
+                    return 'Sat.';
+                }
+            };
+            let date = past.getDate();
+            let time = past.getHours() + ':' + past.getMinutes();
+            let gap = now.getTime() - past.getTime();
+            if (now.getFullYear() !== year) {
+                console.log(now.getFullYear());
+                console.log(year);
+                return time + '  ' + year + '/' + mon + '/' + date;
+            } else if (gap > week) {
+                console.log('2');
+                return time + ' ' + mon + '/' + date;
+            } else if (gap > daySec || date !== now.getDate()) {
+                console.log('3');
+                return time + '  ' + day();
+            } else if (gap < daySec) {
+                console.log('4');
+                return time;
+            } else {
+                return '..';
+            }
+
+            // if () {
+            //     return date.getHours() + ':' + date.getMinutes();
+            // }elseif
+        },
+        typing (e) {
+            console.log(e.target.innerHTML);
+            // document.getElementById('inputArea').addEventListener('blur', () => {
+            this.chatTxt = e.target.innerHTML;
+            // });
+        },
         addEmo (emo) {
-            // console.log(window.getSelection());
-            // let v = window.getSelection().getRangeAt(0).deleteContents();
-            // console.log(v);
-            // let f = html;
+            let type = document.getElementById('inputArea');
+            // type.selectionStart();
+            // console.log(type.selectionStart);
+            let arrTxt = this.chatTxt.split('');
+
+            arrTxt.splice(type.selectionStart, 0, emo);
+            console.log(arrTxt);
+            this.chatTxt = arrTxt.join('');
+            // // window.addEventListener('focus', () => {
+            // type.focus();
+            // let sel = window.getSelection();
+            // if (sel.getRangeAt && sel.rangeCount) {
+            //     let range = sel.getRangeAt(0);
+            //     // let el = document.createElement('span');
+            //     // el.textContent = emo;
+            //     var frag = document.createDocumentFragment();
+            //     // let node = el.firstChild;
+            //     frag.appendChild(emo);
+            //     // while ((node = el.firstChild)) {
+            //     //   let  lastNode = frag.appendChild(node);
+            //     // }
+            //     // var firstNode = frag.firstChild;
+            //     range.insertNode(frag);
+            // }
+            // // });
+            // this.chatTxt = type.innerHTML;
+            // // console.log(window.getSelection());
+            // // let v = window.getSelection().getRangeAt(0).deleteContents();
+            // // console.log(v);
+            // // let f = html;
         },
         uploadFile (e) {
             console.log(e);
@@ -130,18 +217,17 @@ export default {
             let store = storage.ref(type).child(file.name).put(file);
             store.then(snap => {
                 snap.ref.getDownloadURL().then(url => {
-                    console.log(url);
                     // downloadURL = url;
                     db.collection('chatRoom').doc('hall').collection('message').add({
                         name: this.user.name,
                         type: type,
                         url: url,
-                        fileName: file.name.split('.'),
+                        fileName: file.name,
                         size: file.size + ' kb',
                         // fileType: (file.name.split('.'))[1],
                         // context: this.chatTxt,
                         avatar: this.user.avatarId,
-                        timeStamp: new Date()
+                        timeStamp: Date.parse(new Date().toUTCString())
                     }).then(() => {
                         // this.chatTxt = '';
                     });
@@ -161,7 +247,7 @@ export default {
                     type: 'text',
                     context: this.chatTxt,
                     avatar: this.user.avatarId,
-                    timeStamp: new Date().toUTCString()
+                    timeStamp: Date.parse(new Date().toUTCString())
                 };
                 db.collection('chatRoom').doc('hall').collection('message').add(time).then(() => {
                     this.chatTxt = '';
@@ -186,7 +272,7 @@ export default {
                 name: this.user.name,
                 type: 'news',
                 status: true,
-                timeStamp: new Date()
+                timeStamp: Date.parse(new Date().toUTCString())
             }).then(() => {
                 // console.log('ko');
                 // setTimeout(() => {
@@ -196,7 +282,10 @@ export default {
         }
     },
     mounted () {
-        console.log(new Date());
+        let a = Date.parse('27 Sep 2019 06:39:34 GMT');
+        let b = new Date(a).getHours();
+        console.log(b + ':' + new Date(a).getMinutes());
+        // console.log(new Date().getTime());// slow
     }
 
     // created () { }
@@ -206,10 +295,14 @@ export default {
 .emo {
     position: absolute;
     bottom: 50px;
-    display: none;
+    // display: none;
 }
 * {
     font-family: '微軟正黑體';
+}
+a {
+    text-decoration: none;
+    color: inherit;
 }
 section {
     background-color: #766c6c;
@@ -235,6 +328,7 @@ nav {
     &.slideIn {
         right: 0;
         transition: 0.3s;
+        z-index: 1;
     }
 }
 .avatarSelect {
@@ -282,24 +376,48 @@ nav {
     .news {
         font-size: 11px;
     }
-    div {
-        width: calc(100vw - 120px);
-        font-size: 13px;
+    div:not(.file) {
+        // width: calc(100vw - 120px);
+        font-size: 15px;
         word-break: break-word;
         display: flex;
+
         align-items: center;
 
         p {
             background-color: #524a4a;
-            padding: 20px;
+            padding: 10px 20px;
+            border-radius: 10px;
         }
         img {
             width: 100%;
             max-height: 30vh;
         }
     }
+    .file {
+        background-color: #524a4a;
+        padding: 10px;
+        font-size: 15px;
+        border-radius: 10px;
+        p:last-child {
+            text-align: center;
+            font-size: 12px;
+            padding-top: 10px;
+        }
+    }
+
+    & > p:last-child {
+        font-size: 10px;
+        padding-top: 25px;
+        padding-left: 10px;
+    }
     .news {
         margin: auto;
+        font-size: 12px;
+        & + p {
+            padding: 0;
+            margin-right: 10px;
+        }
     }
 }
 .typeArea {
@@ -350,8 +468,9 @@ nav {
             background-color: #c4b1b1;
         }
     }
-    input {
+    #inputArea {
         width: calc(100% - 128px);
+        height: 80%;
         background-color: transparent;
         border: none;
         outline: none;
