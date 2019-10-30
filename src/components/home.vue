@@ -1,12 +1,20 @@
 <template>
     <section>
 
-        <div>
+        <ul>
             <h1>vue project</h1>
-            <router-link to="/tomato">tomato</router-link>
-            <router-link to="/music">music player</router-link>
-            <router-link to="/chatRoom"> chat room</router-link>
-        </div>
+            <li>
+                <router-link to="/tomato">Pomodoro timer</router-link>
+                <a class="wiki" href="https://en.wikipedia.org/wiki/Pomodoro_Technique" target="blank">wiki</a>
+            </li>
+            <li>
+                <router-link to="/music">Music player</router-link>
+            </li>
+            <li>
+                <router-link to="/chatRoom"> Chat room</router-link>
+            </li>
+
+        </ul>
     </section>
 </template>
 
@@ -38,8 +46,6 @@ h1 {
     color: #2b221d;
 }
 a {
-    @include flex-form;
-    padding: 20px;
     color: #c1b1a5;
     font-size: 22px;
     text-decoration: none;
@@ -48,5 +54,23 @@ a {
         color: #524a4a;
         transition: 0.3s;
     }
+
+    &.wiki {
+        display: inline;
+        font-size: 15px;
+        color: #ccc;
+        &:hover {
+            color: #524a4a;
+            transition: 0.3s;
+        }
+    }
+}
+li {
+    @include flex-form;
+    padding: 20px;
+}
+li:nth-child(2) a {
+    display: inline;
+    margin-right: 30px;
 }
 </style>
