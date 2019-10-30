@@ -15,6 +15,8 @@
             </li>
 
         </ul>
+        <figure><img src="../assets/Vuelogo.svg"></figure>
+
     </section>
 </template>
 
@@ -37,9 +39,21 @@ section {
     position: relative;
     @include flex-form;
     justify-content: center;
-    background-image: url(../assets/logo.png);
+    // background-image: url(../assets/Vuelogo.svg);
     background-repeat: no-repeat;
-    background-position: 100% 100%;
+    background-position: 98% 98%;
+    figure {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+        width: 255px;
+        min-width: 50vw;
+        opacity: 0.1;
+        img {
+            width: 100%;
+        }
+    }
 }
 h1 {
     padding: 20px;
