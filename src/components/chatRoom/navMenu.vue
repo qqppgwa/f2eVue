@@ -1,6 +1,13 @@
 <template>
     <nav>
-        <p>{{user.name}}</p>
+        <div>
+            <figure v-if="user">
+                <!-- <figcaption>{{d.name}}</figcaption> -->
+                <img :src="require('@/assets/images/'+user.avatarId+'.png')" alt="">
+            </figure>
+            <p>暱稱 : {{user.name}}</p>
+        </div>
+
     </nav>
 
 </template>
@@ -12,24 +19,27 @@ export default {
         return {
 
         };
-    },
-    watch: {
-
-    },
-    methods: {
-
-    },
-    mounted () {
-        console.log(this.user);
     }
 };
 </script>
 <style scoped lang="scss">
-// nav {
-//     width: 100vw;
-//     height: calc(100vh - 45px);
-//     background-color: #eee;
-//     position: fixed;
-//     left: 300%;
-// }
+figure {
+    margin: auto;
+    width: 136px;
+    height: 136px;
+    border: 2px solid #fcaa72;
+    border-radius: 50%;
+    align-items: center;
+    overflow: hidden;
+    img {
+        width: 100%;
+    }
+}
+div {
+    margin-top: 20vh;
+}
+p {
+    text-align: center;
+    margin-top: 30px;
+}
 </style>

@@ -67,10 +67,10 @@ export default {
         circle () { },
         nowDo: {
             handler (i) {
-                this.rest.sec = 2;
-                this.rest.min = 0;
-                this.work.sec = 3;
-                this.work.min = 3;
+                this.rest.sec = 0;
+                this.rest.min = 5;
+                this.work.sec = 0;
+                this.work.min = 25;
                 if (i === null) {
                     this.rest.sec = 0;
                     this.rest.min = 0;
@@ -104,7 +104,6 @@ export default {
                 if (self.isBreak) {
                     clearTimeout(self.work.timer);
                     self.rest.timer = setTimeout(() => {
-                        console.log('brea');
                         if (self.rest.sec === 0 && self.rest.min !== 0) {
                             self.rest.sec = '59';
                             self.rest.min--;

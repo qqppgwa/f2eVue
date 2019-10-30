@@ -75,13 +75,9 @@ export default {
     },
     methods: {
         change (i, type) {
-            console.log(i);
             type.indexOf('d') > -1 ? this.selectedD = i : this.selectedC = i;
             this.$emit('changeAvatar', type);
         }
-    },
-    mounted () {
-        console.log(this.type);
     }
 };
 </script>
@@ -92,13 +88,13 @@ section {
 figure {
     // text-align: center;
     margin: auto;
-    height: 240px;
+    margin-top: 10px;
+    height: 30vh;
     width: 140px;
-    display: flex;
-    align-content: center;
+    @include flex-form;
     justify-content: center;
     img {
-        width: 100%;
+        height: 100%;
     }
 }
 ul {
@@ -106,9 +102,9 @@ ul {
     overflow: hidden;
     display: flex;
     justify-content: center;
+    height: 150px;
     li {
-        display: flex;
-        align-items: center;
+        @include flex-form;
         margin: 1%;
         border: 1px solid #eee;
         width: 23%;

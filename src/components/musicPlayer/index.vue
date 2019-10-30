@@ -429,9 +429,8 @@ nav > div {
     position: relative;
 }
 nav > div div {
-    display: flex;
+    @include flex-form;
     flex-direction: column;
-    align-items: center;
 }
 .top button {
     margin-bottom: 65px;
@@ -510,9 +509,8 @@ main > div:first-child {
 }
 .playInfo > div {
     width: 33.33%;
-    display: flex;
+    @include flex-form;
     justify-content: center;
-    align-items: center;
 }
 .playInfo figure {
     width: 40px;
@@ -576,8 +574,7 @@ main > div:first-child {
     background-image: url(../../assets/images/volume_up.svg);
 }
 .vol div {
-    display: flex;
-    align-items: center;
+    @include flex-form;
 }
 .vol > button {
     width: 24px;
@@ -649,17 +646,16 @@ main > div:first-child {
     bottom: 0;
 }
 li {
-    display: flex;
+    @include flex-form;
     height: 56px;
-    align-items: center;
+
     border-bottom: 1px solid #707070;
 }
 li audio {
     display: none;
 }
 li div:nth-child(2) {
-    display: flex;
-    align-items: center;
+    @include flex-form;
 
     width: 10%;
 }

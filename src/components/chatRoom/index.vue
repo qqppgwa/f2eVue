@@ -1,22 +1,30 @@
 <template>
     <section>
-        <header>
+        <header v-if="inChat">
 
-            <div v-if="inChat" @click="showMenu=!showMenu">@@</div>
+            <button @click="showMenu=!showMenu"></button>
+
         </header>
         <navMenu v-if="user.name" :class="{slideIn:showMenu}" :user="user" />
         <div v-if="!inChat||!user">
             <div class="avatarSelect">
-                <p>WELCOME</p>
-                <h1>cR</h1>
+                <h1>
+                    <p> WELCOME</p>
+                    Dog & cat chatRoom
+                </h1>
+
             </div>
             <div class="tab">
-                <button @click="user.avatartype='dog'">dog</button>
-                <button @click="user.avatartype='cat'">cat</button>
+                <p>Please choose your avatar</p>
+                <button @click="user.avatartype='dog'" :class="{'using':user.avatartype==='dog'}">dog</button>
+                <button @click="user.avatartype='cat'" :class="{'using':user.avatartype==='cat'}">cat</button>
             </div>
             <AvatarList :type="user.avatartype" @changeAvatar="changeAvatar" />
-            <input type="text" placeholder="暱稱" v-model.trim="user.name">
-            <button :disabled="user.name.length<1" @click="enter">進入</button>
+            <div class="nameInput">
+                <input type="text" placeholder="暱稱" v-model.trim="user.name">
+                <button :disabled="user.name.length<1" @click="enter">進入</button>
+            </div>
+
         </div>
         <!-- --------------------------------chat---------------------------------------- -->
 
@@ -98,11 +106,9 @@ export default {
     },
     watch: {
         data () {
-            // console.log('kk');
             if (this.inChat) {
                 // window.scrollTo(0, 99999);
                 setTimeout(function () {
-                    console.log('m');
                     window.scrollTo(0, 99999);
                 }, 200);
             }
@@ -121,8 +127,8 @@ export default {
     methods: {
         dateFormat (t) {
             let now = new Date();
-            let past = new Date(t); console.log(past);
-            let daySec = 1000 * 60 * 60 * 24;// 天
+            let past = new Date(t);
+            let daySec = 1000 * 60 * 60 * 24;// 一天秒數
             let week = daySec * 7;
             let year = past.getFullYear();
             let mon = past.getMonth();
@@ -146,43 +152,30 @@ export default {
                 }
             };
             let date = past.getDate();
-            let time = past.getHours() + ':' + past.getMinutes();
+            let time = past.getHours() + ':' + (past.getMinutes() < 10 ? '0' + past.getMinutes() : past.getMinutes());
             let gap = now.getTime() - past.getTime();
             if (now.getFullYear() !== year) {
-                console.log(now.getFullYear());
-                console.log(year);
                 return time + '  ' + year + '/' + mon + '/' + date;
             } else if (gap > week) {
-                console.log('2');
                 return time + ' ' + mon + '/' + date;
             } else if (gap > daySec || date !== now.getDate()) {
-                console.log('3');
                 return time + '  ' + day();
             } else if (gap < daySec) {
-                console.log('4');
                 return time;
             } else {
                 return '..';
             }
-
-            // if () {
-            //     return date.getHours() + ':' + date.getMinutes();
-            // }elseif
         },
         typing (e) {
-            console.log(e.target.innerHTML);
             // document.getElementById('inputArea').addEventListener('blur', () => {
             this.chatTxt = e.target.innerHTML;
             // });
         },
         addEmo (emo) {
             let type = document.getElementById('inputArea');
-            // type.selectionStart();
-            // console.log(type.selectionStart);
             let arrTxt = this.chatTxt.split('');
 
             arrTxt.splice(type.selectionStart, 0, emo);
-            console.log(arrTxt);
             this.chatTxt = arrTxt.join('');
             // // window.addEventListener('focus', () => {
             // type.focus();
@@ -208,8 +201,6 @@ export default {
             // // let f = html;
         },
         uploadFile (e) {
-            console.log(e);
-            console.log(e.target);
             // let downloadURL;
             let file = e.target.files[0];
             let type = (file.type.split('/'))[0] === 'image' ? 'image' : 'file';
@@ -232,15 +223,11 @@ export default {
                         // this.chatTxt = '';
                     });
                 });
-                // console.log(b);
+
                 // return fileRef.getDownloadURL();
             });
-            console.log(file);
         },
         sendMsg () {
-            // console.log(this.chatTxt);
-            // time;
-            console.log(this.chatTxt.split(''));
             if (this.chatTxt.length > 0) {
                 let time = {
                     name: this.user.name,
@@ -251,41 +238,25 @@ export default {
                 };
                 db.collection('chatRoom').doc('hall').collection('message').add(time).then(() => {
                     this.chatTxt = '';
-                    console.log(time);
                 });
             }
-
-            // window.scrollTo(0, 99999);
         },
         changeAvatar (i) {
             this.user.avatarId = i;
         },
         enter () {
             this.inChat = true;
-            let f = new Date();
-
-            console.log(f.getHours());
-            // this.$firestoreRefs;
-            // console.log(this.$firestoreRefs);
-            //  this.$firestoreRefs.chatRoom.hall.message.add({
             db.collection('chatRoom').doc('hall').collection('message').add({
                 name: this.user.name,
                 type: 'news',
                 status: true,
                 timeStamp: Date.parse(new Date().toUTCString())
             }).then(() => {
-                // console.log('ko');
                 // setTimeout(() => {
                 window.scrollTo(0, 99999);
                 // }, 500);
             });
         }
-    },
-    mounted () {
-        let a = Date.parse('27 Sep 2019 06:39:34 GMT');
-        let b = new Date(a).getHours();
-        console.log(b + ':' + new Date(a).getMinutes());
-        // console.log(new Date().getTime());// slow
     }
 
     // created () { }
@@ -312,11 +283,19 @@ section {
     padding-top: 45px;
 }
 header {
+    @include flex-form;
     width: 100%;
     height: 45px;
     background-color: #524a4a;
     position: fixed;
     top: 0;
+    button {
+        outline: none;
+        width: 40px;
+        height: 40px;
+        background-image: url(../../assets/images/info.svg);
+        background-size: cover;
+    }
 }
 nav {
     width: 100vw;
@@ -336,27 +315,60 @@ nav {
     width: 95%;
     border-radius: 21px;
     margin: auto;
-    margin-top: 5vh;
+    // margin-top: 5vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    p,
+
     h1 {
+        padding: 10px;
+        p {
+            font-size: 15px;
+        }
+
         text-align: center;
         color: #fff;
     }
 }
+.nameInput {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    input {
+        width: 67%;
+    }
+    button {
+        padding: 5px 10px;
+        color: #eee;
+    }
+}
 .tab {
     text-align: center;
+    p {
+        color: #fff;
+    }
+    button {
+        border: 1px solid #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        outline: none;
+    }
+    .using {
+        border: 1px solid #fcaa72;
+    }
 }
 .hall {
     margin-top: 10px;
     padding-bottom: 50px;
 }
 .item {
-    display: flex;
+    @include flex-form;
     margin-bottom: 10px;
-    align-items: center;
+
     &.me {
         flex-direction: row-reverse;
         div {
@@ -380,9 +392,11 @@ nav {
         // width: calc(100vw - 120px);
         font-size: 15px;
         word-break: break-word;
-        display: flex;
+        @include flex-form;
+        min-width: 20vw;
 
-        align-items: center;
+        padding: 5px;
+        border-radius: 5px;
 
         p {
             background-color: #524a4a;
@@ -392,6 +406,7 @@ nav {
         img {
             width: 100%;
             max-height: 30vh;
+            border-radius: 5px;
         }
     }
     .file {
@@ -408,8 +423,7 @@ nav {
 
     & > p:last-child {
         font-size: 10px;
-        padding-top: 25px;
-        padding-left: 10px;
+        padding: 25px 10px;
     }
     .news {
         margin: auto;
@@ -426,15 +440,13 @@ nav {
     width: 100%;
     position: fixed;
     bottom: 0;
-    display: flex;
-    align-items: center;
+    @include flex-form;
     padding-right: 5px;
 
     .tool {
         width: 100px;
         height: 100%;
-        display: flex;
-        align-items: center;
+        @include flex-form;
         justify-content: space-around;
         button {
             width: 20px;
