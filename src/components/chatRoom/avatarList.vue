@@ -105,13 +105,14 @@ ul {
     height: 150px;
     li {
         @include flex-form;
+        justify-content: center;
         margin: 1%;
         border: 1px solid #eee;
         width: 23%;
         max-width: 100px;
     }
     img {
-        width: 100%;
+        height: 100%;
     }
 }
 </style>
