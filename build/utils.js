@@ -39,7 +39,7 @@ exports.cssLoaders = function (options) {
         options: Object.assign({}, loaderOptions, {
           sourceMap: options.sourceMap
         }, {
-          data: `@import "../_mixin.scss";`
+          data: `@import "@/components/_mixin.scss";`
         })
       })
     }

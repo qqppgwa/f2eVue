@@ -1,18 +1,31 @@
 <template>
     <div id="app">
         <!-- <img src="./assets/logo.png"> -->
-        <router-view />
+        <transition name="fade">
+            <router-view />
+        </transition>
+
     </div>
 </template>
 
 <script>
 
 export default {
-    name: 'App'
+    name: 'App',
+    data () {
+        return {
+            transitionName: ''
+        };
+    },
+    watch: {
+        '$router': function () {
+            console.log(this.$router);
+        }
+    }
 };
 </script>
 
-<style>
+<style lang="scss">
 * {
     margin: 0;
     padding: 0;
@@ -29,5 +42,17 @@ button {
 ul,
 li {
     list-style: none;
+}
+
+.fade-enter-active {
+    transition: 0.3s;
+}
+.fade-leave-active {
+    transition: 0.8s;
+}
+.fade-enter, .fade-leave-to
+/* .slide-fade-leave-active for below version 2.1.8 */ {
+    /* transform: translateX(10px); */
+    opacity: 0;
 }
 </style>
