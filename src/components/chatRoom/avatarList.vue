@@ -6,8 +6,8 @@
             </figure>
 
             <ul>
-                <li v-for="(dog,idx) in dogList" :key="dog.id" @click="change(idx,dog.id)">
-                    <img :src="dog.body" alt="">
+                <li v-for="(dog,idx) in dogList" :key="dog.id" @click="change(idx,dog.id)" :style="{backgroundImage:`url(${dog.body})`}">
+
                 </li>
             </ul>
         </div>
@@ -17,8 +17,8 @@
             </figure>
 
             <ul>
-                <li v-for="(cat,idx) in catList" :key="cat.id" @click="change(idx,cat.id)">
-                    <img :src="cat.body" alt="">
+                <li v-for="(cat,idx) in catList" :key="cat.id" @click="change(idx,cat.id)" :style="{backgroundImage:`url(${cat.body})`}">
+
                 </li>
             </ul>
         </div>
@@ -110,9 +110,12 @@ ul {
         border: 1px solid #eee;
         width: 23%;
         max-width: 100px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
     }
-    img {
-        height: 100%;
-    }
+    // img {
+    //     height: 100%;
+    // }
 }
 </style>

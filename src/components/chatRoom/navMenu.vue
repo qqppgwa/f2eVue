@@ -5,7 +5,7 @@
                 <!-- <figcaption>{{d.name}}</figcaption> -->
                 <img :src="require('@/assets/images/'+user.avatarId+'.png')" alt="">
             </figure>
-            <p>暱稱 : {{user.name}}</p>
+            <p>Nickname : {{user.name}}</p>
         </div>
 
     </nav>
@@ -24,6 +24,7 @@ export default {
 </script>
 <style scoped lang="scss">
 figure {
+    @include flex-form;
     margin: auto;
     width: 136px;
     height: 136px;
@@ -31,6 +32,7 @@ figure {
     border-radius: 50%;
     align-items: center;
     overflow: hidden;
+    background-color: #fff;
     img {
         width: 100%;
     }

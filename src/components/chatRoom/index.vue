@@ -21,8 +21,8 @@
             </div>
             <AvatarList :type="user.avatartype" @changeAvatar="changeAvatar" />
             <div class="nameInput">
-                <input type="text" placeholder="暱稱" v-model.trim="user.name">
-                <button :disabled="user.name.length<1" @click="enter">進入</button>
+                <input type="text" placeholder="Nick name" v-model.trim="user.name">
+                <button :disabled="user.name.length<1" @click="enter">Enter</button>
             </div>
 
         </div>
@@ -39,7 +39,6 @@
                     </div>
                     <div v-if="d.type==='file'" class="file">
                         <p>name:{{d.fileName}} </p>
-                        <p>type:{{d.fileType}}</p>
                         <p>size:{{d.size}}</p>
                         <p><a download :href="d.url">click to open</a></p>
 
@@ -48,7 +47,7 @@
                         <img :src="d.url" :alt="d.fileName">
                     </div>
                     <p v-if="d.type==='news'&&d.status" class="news">
-                        <span>{{d.name}}</span>進入聊天
+                        <span>{{d.name}}</span> Enter the room
                     </p>
                     <p>{{dateFormat(d.timeStamp)}}</p>
                     <!-- <p>{{d.timeStamp.getHours()}}</p> -->
@@ -368,7 +367,8 @@ nav {
 .item {
     @include flex-form;
     margin-bottom: 10px;
-
+    justify-content: space-between;
+    // width: calc(100vw - 150px);
     &.me {
         flex-direction: row-reverse;
         div {
@@ -390,11 +390,12 @@ nav {
     }
     div:not(.file) {
         // width: calc(100vw - 120px);
-        font-size: 15px;
+        font-size: 13px;
         word-break: break-word;
         @include flex-form;
-        min-width: 20vw;
-
+        // width: 48vw;
+        width: calc(100vw - 150px);
+        max-width: 500px;
         padding: 5px;
         border-radius: 5px;
 
@@ -405,15 +406,23 @@ nav {
         }
         img {
             width: 100%;
-            max-height: 30vh;
+            // max-height: 30vh;
             border-radius: 5px;
         }
     }
     .file {
         background-color: #524a4a;
         padding: 10px;
-        font-size: 15px;
+        font-size: 13px;
         border-radius: 10px;
+        // max-width: 55vw;
+        width: calc(100vw - 150px);
+        p {
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         p:last-child {
             text-align: center;
             font-size: 12px;
@@ -423,14 +432,16 @@ nav {
 
     & > p:last-child {
         font-size: 10px;
-        padding: 25px 10px;
+        // padding: 25px 10px;
+        width: 50px;
+        text-align: center;
     }
     .news {
         margin: auto;
         font-size: 12px;
         & + p {
             padding: 0;
-            margin-right: 10px;
+            // margin-right: 10px;
         }
     }
 }
