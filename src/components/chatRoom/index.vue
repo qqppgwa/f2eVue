@@ -297,7 +297,7 @@ header {
     }
 }
 nav {
-    width: 100vw;
+    width: 100%;
     height: calc(100vh - 45px);
     background-color: #eee;
     position: fixed;
@@ -432,15 +432,18 @@ nav {
 
     & > p:last-child {
         font-size: 10px;
+        padding-right: 10px;
         // padding: 25px 10px;
         width: 50px;
         text-align: center;
+        word-break: break-word;
     }
     .news {
         margin: auto;
         font-size: 12px;
         & + p {
             padding: 0;
+            padding-right: 10px;
             // margin-right: 10px;
         }
     }
