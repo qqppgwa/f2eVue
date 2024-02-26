@@ -1,3 +1,11 @@
+It contains 3 small projects for practice.
+
+ 1. Pomodoro timer 
+
+ 2. Music player 
+
+ 3. Chat room (with firebase)
+
 demo link : https://qqppgwa.github.io/f2eVue
 
 # f2e-vue
